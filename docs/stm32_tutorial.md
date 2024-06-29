@@ -18,12 +18,26 @@ STM32是ST公司基于ARM Cortex-M内核开发的32位微控制器
 
 # dev software
 
+## Install Keil5
+
 - 安装Keil5 MDK: 安装 Arm compiler: ARM_Compiler_5.06u7
 - 安装器件支持包
 - 软件注册
 - 安装STLINK驱动
 - 安装USB转串口驱动
 - STM32F10x_StdPeriph_Lib_V3.5.0 标准库/固件库
+
+## Debug method
+ - 串口调试： 通过串口通信，将调试信息发送到电脑端，电脑使用串口助手显示调试信息
+ - 显示屏调试
+ - Keil调试模式
+
+## Keil Debug
+
+- compile 
+- start debug session
+- 
+
 
 
 # 项目工程结构
@@ -78,4 +92,34 @@ choose ARM compiler v5
 - 模拟输入
 
 
+
+# 中断系统
+
+中断：在主程序运行过程中，出现了特定的中断触发条件（中断源），使得CPU暂停当前正在运行的程序，转而去处理中断程序，处理完成后又返回原来被暂停的位置继续运行
+
+中断优先级：当有多个中断源同时申请中断时，CPU会根据中断源的轻重缓急进行裁决，优先响应更加紧急的中断源
+
+中断嵌套：当一个中断程序正在运行时，又有新的更高优先级的中断源申请中断，CPU再次暂停当前中断程序，转而去处理新的中断程序，处理完成后依次进行返回
+
+
+
+
+## EXTI ： （Extern Interrupt）外部中断
+
+EXTI可以监测指定GPIO口的电平信号，当其指定的GPIO口产生电平变化时，EXTI将立即向NVIC发出中断申请，经过NVIC裁决后即可中断CPU主程序，使CPU执行EXTI对应的中断程序
+- 支持的触发方式：上升沿/下降沿/双边沿/软件触发
+- 支持的GPIO口：所有GPIO口，但相同的Pin不能同时触发中断
+- 通道数：16个GPIO_Pin，外加PVD输出、RTC闹钟、USB唤醒、以太网唤醒
+- 触发响应方式：中断响应/事件响应
+
+### EXTI基本结构
+
+GPICO -> AFIO 中断引脚选择 ->EXTI 边沿检测及控制 > NVIC
+
+- 68个可屏蔽中断通道，包含EXTI、TIM、ADC、USART、SPI、I2C、RTC等多个外设
+- AFIO ： 在STM32中，AFIO主要完成两个任务：复用功能引脚重映射、中断引脚选择
+- NVIC：嵌套中断向量控制器， 使用 NVIC 统一管理中断，每个中断通道都拥有16个可编程的优先等级，可对优先级进行分组，进一步设置抢占优先级和响应优先级
+
+
+## Timer Interrupt 定时中断
 

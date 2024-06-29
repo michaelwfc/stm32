@@ -4,9 +4,9 @@
 
 int main(void)
 	{	
-		unsigned int time=300;
+		unsigned int time=100;
 		
-	// Ex1: light LED on  A0
+	    // Ex1: light LED on  A0
 		// initial GPIO A 所有口
 		RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA,ENABLE);
 		
@@ -23,7 +23,6 @@ int main(void)
 		// light the led
 		// GPIO_SetBits(GPIOA, GPIO_Pin_0);   // A0 口 高电平
 		//GPIO_ResetBits(GPIOA, GPIO_Pin_0);   // A0 口低电平
-		
 		
 		
 		// EX2: ring PB12
