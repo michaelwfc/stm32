@@ -27,19 +27,30 @@ int main(void)
 	uint8_t array[] = {0x42,0x43,0x44,0x45};
 	Serial_SendArray(array,4);
 	
-	Serial_SendString("\r\nhello stm32");
+	Serial_SendString("\r\nhello stm32\r\n");
 	
+	// printf 重定向到 串口
+	printf("Num=%d\r\n",666);
 	
-	//printf("Num=%d\r\n",666);
+	// 打印到任意的串口
+	char s[100];
+	sprintf(s, "str=%d\r\n", 777);
+	Serial_SendString(s);
 	
 	
 	OLED_ShowString(3,1,"Rece Hex:");	
 	
 	while(1)
 	{
-		if(USART_GetFlagStatus(USART3, USART_FLAG_RXNE) == SET)
+//		if(USART_GetFlagStatus(USART3, USART_FLAG_RXNE) == SET)
+//		{
+//			RxData = USART_ReceiveData(USART3);
+//			OLED_ShowHexNum(3,11, RxData, 2);
+//		}
+		// 使用中断读取数据
+		if(Serial_GetRxFlag()==1)
 		{
-			RxData = USART_ReceiveData(USART3);
+			RxData = Serial_GetRxData();
 			OLED_ShowHexNum(3,11, RxData, 2);
 		}
 		

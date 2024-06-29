@@ -6,12 +6,12 @@
 uint8_t Serial_RxData;
 uint8_t Serial_RxFlag;
 
-//#define USART_x  USART3
-//#define RCC_USART  RCC_APB1Periph_USART3
-//#define RCC_GPIO  RCC_APB2Periph_GPIOB
-//#define GPIO_x GPIOB
-//#define USART_TX_PIN  GPIO_Pin_10
-//#define USART_RX_PIN  GPIO_Pin_11
+#define USART_x  USART3
+#define RCC_USART  RCC_APB1Periph_USART3
+#define RCC_GPIO  RCC_APB2Periph_GPIOB
+#define GPIO_x GPIOB
+#define USART_TX_PIN  GPIO_Pin_10
+#define USART_RX_PIN  GPIO_Pin_11
 
 /*
 CH340G USB to TTL 
@@ -49,14 +49,18 @@ void Serial_Init(void)
 	USART_InitStruture.USART_WordLength = USART_WordLength_8b; // 字长
 	USART_Init(USART3,&USART_InitStruture);
 	
-//	USART_ITConfig(USART_x,USART_IT_RXNE,ENABLE);
-//	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
-//	NVIC_InitTypeDef NVIC_InitStructure;
-//	NVIC_InitStructure.NVIC_IRQChannel = USART3_IRQn;
-//	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-//	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
-//	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
-//	NVIC_Init(&NVIC_InitStructure);
+	/*中断输出配置*/
+	USART_ITConfig(USART_x,USART_IT_RXNE,ENABLE);
+	
+	/*NVIC中断分组*/
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+	/*NVIC配置*/
+	NVIC_InitTypeDef NVIC_InitStructure;
+	NVIC_InitStructure.NVIC_IRQChannel = USART3_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+	NVIC_Init(&NVIC_InitStructure);
 	
 	USART_Cmd(USART3,ENABLE); 
 }
@@ -130,6 +134,12 @@ int fputc(int ch,FILE *f)
 }
 
 
+/**
+  * 函    数：自己封装的prinf函数
+  * 参    数：format 格式化字符串
+  * 参    数：... 可变的参数列表
+  * 返 回 值：无
+  */
 void Serial_Printf(char *format, ...)
 {
 	char String[100];
@@ -141,6 +151,11 @@ void Serial_Printf(char *format, ...)
 	
 }
 
+/**
+  * 函    数：获取串口接收标志位
+  * 参    数：无
+  * 返 回 值：串口接收标志位，范围：0~1，接收到数据后，标志位置1，读取后标志位自动清零
+  */
 uint8_t Serial_GetRxFlag(void)
 {
 	if(Serial_RxFlag == 1)
@@ -156,12 +171,22 @@ uint8_t Serial_GetRxData(void)
 	return Serial_RxData;
 }
 
-void USART1_IRQHandler(void)
+
+/**
+  * 函    数：USART3中断函数
+  * 参    数：无
+  * 返 回 值：无
+  * 注意事项：此函数为中断函数，无需调用，中断触发后自动执行
+  *           函数名为预留的指定名称，可以从启动文件复制
+  *           请确保函数名正确，不能有任何差异，否则中断函数将不能进入
+  */
+
+void USART3_IRQHandler(void)
 {
-	if(USART_GetFlagStatus(USART1,USART_IT_RXNE) == SET)
+	if(USART_GetFlagStatus(USART3,USART_IT_RXNE) == SET)
 	{
-		Serial_RxData = USART_ReceiveData(USART1);
+		Serial_RxData = USART_ReceiveData(USART3);
 		Serial_RxFlag = 1;
-		USART_ClearITPendingBit(USART1,USART_IT_RXNE);
+		USART_ClearITPendingBit(USART3,USART_IT_RXNE);
 	}
 }
