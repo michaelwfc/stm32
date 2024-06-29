@@ -6,6 +6,16 @@
 uint8_t Serial_RxData;
 uint8_t Serial_RxFlag;
 
+// 存储 hex 数据包
+
+
+uint8_t serial_tx_packet[4];
+uint8_t serial_rx_packet[4];
+
+#define PACKET_LENGTH 4
+# define HEX_PACKET_START 0xFF
+# define HEX_PACKET_END   0xFE
+
 #define USART_x  USART3
 #define RCC_USART  RCC_APB1Periph_USART3
 #define RCC_GPIO  RCC_APB2Periph_GPIOB
@@ -120,6 +130,14 @@ void Serial_SendNumber(uint32_t Number,uint8_t Length)
 	}
 }
 
+void serial_send_packet(void)
+{
+	Serial_SendByte(HEX_PACKET_START);
+	Serial_SendArray(serial_tx_packet,PACKET_LENGTH);
+	Serial_SendByte(HEX_PACKET_END);
+	
+	
+}
 
 /**
   * 函    数：使用printf需要重定向的底层函数, fputc 是printf 的底层，重定向到 串口
@@ -172,6 +190,8 @@ uint8_t Serial_GetRxData(void)
 }
 
 
+
+
 /**
   * 函    数：USART3中断函数
   * 参    数：无
@@ -181,12 +201,57 @@ uint8_t Serial_GetRxData(void)
   *           请确保函数名正确，不能有任何差异，否则中断函数将不能进入
   */
 
+//void USART3_IRQHandler(void)
+//{
+//	if(USART_GetFlagStatus(USART3,USART_IT_RXNE) == SET)
+//	{
+//		Serial_RxData = USART_ReceiveData(USART3);
+//		Serial_RxFlag = 1;
+//		USART_ClearITPendingBit(USART3,USART_IT_RXNE);
+//	}
+//}
+
+/**
+  * 函    数：USART3中断函数
+  * 参    数：无
+  * 返 回 值：无
+  * 注意事项：使用状态机来接收 packet
+  */
+
 void USART3_IRQHandler(void)
-{
+{	
+	// 静态变量在函数推出后仍旧有效，但是只能在本函数使用
+	static uint8_t RxState =0;
+	static uint8_t pRxPacket =0;
+	
 	if(USART_GetFlagStatus(USART3,USART_IT_RXNE) == SET)
-	{
-		Serial_RxData = USART_ReceiveData(USART3);
-		Serial_RxFlag = 1;
-		USART_ClearITPendingBit(USART3,USART_IT_RXNE);
+	{	
+		uint8_t rx_data = USART_ReceiveData(USART3);
+		// 
+		if(RxState==0)
+		{
+			if(rx_data==HEX_PACKET_START)
+			{
+				RxState=1;
+				pRxPacket =0;
+			}
+		}
+		else if(RxState==1)
+		{
+			serial_rx_packet[pRxPacket] = rx_data;
+			pRxPacket++;
+			if(pRxPacket >=4){
+			RxState=2;
+			
+			}
+		}
+		else if(RxState==2)
+		{
+			if(rx_data == HEX_PACKET_END)
+			{
+				RxState=0;
+				Serial_RxFlag = 1;
+			}
+		}
 	}
 }

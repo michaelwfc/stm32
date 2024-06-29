@@ -13,6 +13,13 @@ void Serial_SendNumber(uint32_t Number,uint8_t Length);
 //int fputc(int ch,FILE *f);
 void Serial_Printf(char *format, ...);
 
+
+extern uint8_t serial_tx_packet[];
+extern uint8_t serial_rx_packet[];
+void serial_send_packet(void);
+
+
+
 uint8_t Serial_GetRxFlag(void);
 uint8_t Serial_GetRxData(void);
 
