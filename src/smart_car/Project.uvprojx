@@ -774,6 +774,56 @@
               <FileType>5</FileType>
               <FilePath>.\Hardware\OLED_Font.h</FilePath>
             </File>
+            <File>
+              <FileName>Buzzer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Hardware\Buzzer.c</FilePath>
+            </File>
+            <File>
+              <FileName>Buzzer.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Hardware\Buzzer.h</FilePath>
+            </File>
+            <File>
+              <FileName>ServoPWM.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Hardware\ServoPWM.c</FilePath>
+            </File>
+            <File>
+              <FileName>ServoPWM.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Hardware\ServoPWM.h</FilePath>
+            </File>
+            <File>
+              <FileName>UltrasonicWave.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Hardware\UltrasonicWave.c</FilePath>
+            </File>
+            <File>
+              <FileName>UltrasonicWave.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Hardware\UltrasonicWave.h</FilePath>
+            </File>
+            <File>
+              <FileName>timer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Hardware\timer.c</FilePath>
+            </File>
+            <File>
+              <FileName>timer.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Hardware\timer.h</FilePath>
+            </File>
+            <File>
+              <FileName>Servo.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Hardware\Servo.c</FilePath>
+            </File>
+            <File>
+              <FileName>Servo.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Hardware\Servo.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

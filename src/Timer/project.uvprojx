@@ -820,6 +820,11 @@
               <FileType>1</FileType>
               <FilePath>.\user\main.c</FilePath>
             </File>
+            <File>
+              <FileName>timer_main.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\user\timer_main.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>

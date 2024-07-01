@@ -1,5 +1,6 @@
 #include "stm32f10x.h"                  // Device header
 #include "Delay.h"
+#include <OLED.h>
 
 //端口定义
 // 红外接收器接入的pin : PA8
@@ -55,7 +56,7 @@ void IRremote_Init(void)
 * 输    入         : 无
 * 输    出         : t
 *******************************************************************************/
-uint8_t IRremote_Counttime()
+uint8_t IRremote_Counttime(void)
 {
 	u8 t=0;
 	while(GPIO_ReadInputDataBit(IRED_PORT,IRED_PIN)==1)//高电平
@@ -107,4 +108,39 @@ void EXTI9_5_IRQHandler(void)	  //红外遥控外部中断
 		}
 	}
 	EXTI_ClearITPendingBit(EXTI_Line8);	
+}
+
+/*
+get ir_signal for start or not 
+*/
+uint8_t get_ir_signal(void)
+{	
+	uint8_t ir_signal;
+	uint8_t buf[2];
+	uint8_t data_code=0;
+	
+	if(IR_Receiveflag == 1) //如果红外接收到
+	{
+		IR_Receiveflag = 0; //清零
+
+		data_code=IR_Receivecode>>8;
+		IR_Receivecode = 0; //接收码清零
+		
+		buf[0] = data_code/16;
+		buf[1] = data_code%16;
+		
+		
+		if(buf[0] == 1 && buf[1] == 8)
+		{
+			ir_signal=2; 
+		}	
+		else
+		{
+			ir_signal = 0; 
+		}	
+	}
+	OLED_ShowString(1,1,"IR_Flag:");
+	OLED_ShowNum(1,10,ir_signal,1);
+	
+	return ir_signal;
 }

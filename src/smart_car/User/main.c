@@ -10,11 +10,19 @@
 #include <Incontrol.h>
 #include <OLED.h>
 #include <stdlib.h>
+#include <UltrasonicWave.h>
+#include <Buzzer.h>
+#include <Servo.h>
+
 
 void basic_move(void);
 void move_by_key(uint8_t key_num);
 void move_by_ircontrol(uint8_t buf[2], uint8_t data_code);
-
+int front_detection(void);
+int left_detection(void);
+int right_detection(void);
+void move_by_ultrasonic(void);
+void move_by_bluetooth(void);
 
 uint8_t FRONT_DIGIT=2;
 uint8_t BACK_DIGIT=8;
@@ -25,7 +33,7 @@ uint8_t DANCE_DIGIT=1;
 
 int main(void)
 {
-	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);  //中断优先级分组分2组
+	// NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);  //中断优先级分组分2组
 	Key_Init();
 	LEDSEG_Init();
 	Serial_Init();             // 串口初始化
@@ -33,24 +41,142 @@ int main(void)
 	robot_Init();              // 机器人初始化
 	LEDSEG_Init();
 	OLED_Init();
-	IRremote_Init(); // 红外遥控器初始化
+	IRremote_Init();     // 红外遥控器初始化
+	Servo_Init();        // 舵机初始化 
+	UltrasonicWave_Init();  //对超声波模块初始化
+	
+
+//	OLED_ShowString(2,1,"Address:");
+//	OLED_ShowString(3,1,"Code:");
+	
 	
 	// uint8_t key_num;
-	uint8_t buf[2];
-	uint8_t data_code=0;
 	
-	OLED_ShowString(1,1,"Flag:");
-	OLED_ShowString(2,1,"Address:");
-	OLED_ShowString(3,1,"Code:");
+//	uint8_t buf[2];
+//	uint8_t data_code=0;
+		
+	//while(Key_GetNum()==0); //等待按键按下
+
+	makerobo_brake(0);
 	
 	while (1)
 	{
+//		uint8_t ir_signal=0;
+//		ir_signal =  get_ir_signal();
+
+		// while(ir_signal==0); // 等待 红外按键
+
 //		key_num = Key_GetNum();
 //		OLED_ShowNum(1,10, key_num, 1);
 //		move_by_key(key_num);
-		move_by_ircontrol(buf, data_code);
+		// move_by_ircontrol(buf, data_code);
+		
+//		Servo_SetAngle(90);
+//		Delay_ms(100);
+//		
+//		Servo_SetAngle(175);
+//		Delay_ms(100);
+//		
+//		Servo_SetAngle(5);
+//		Delay_ms(100);
+		
+		move_by_ultrasonic();
 		}
 }
+
+
+void move_by_ultrasonic(void)
+{
+	int Q_temp,L_temp,R_temp; 
+	Q_temp = front_detection();
+	printf("测到的距离值为：%d\r\n",Q_temp);
+	
+	if(Q_temp<60 && Q_temp>0) //测量距离值	
+	{
+		makerobo_brake(500);		
+		makerobo_back(80,1000);	
+		makerobo_brake(500);	
+		
+		L_temp=left_detection();//测量左边障碍物的距离值
+		printf("测到的距离值为：%d\r\n",L_temp);
+		Delay_ms(500);
+		
+		R_temp=right_detection();//测量右边障碍物的距离值
+		printf("测到的距离值为：%d\r\n",R_temp);
+		Delay_ms(500);
+		
+		if((L_temp < 60 ) &&( R_temp < 60 ))//当左右两侧均有障碍物靠的比较近
+		{
+			// makerobo_Spin_Left(60,500);
+			OLED_ShowString(4,1, "       ");
+			OLED_ShowString(4,1, "Back");
+			makerobo_back(80,1000);
+			makerobo_brake(500);
+			
+		}				
+		else if(L_temp > R_temp)
+		{	
+			OLED_ShowString(4,1, "       ");
+			OLED_ShowString(4,1, "Left");
+			makerobo_Left(80,1000);
+			makerobo_brake(500);
+		}	
+		else
+		{
+			OLED_ShowString(4,1, "       ");
+			OLED_ShowString(4,1, "Right");
+			makerobo_Right(80,1000);
+			makerobo_brake(500);					
+		}							
+	}	
+	else
+	{
+		OLED_ShowString(4,1, "       ");
+		OLED_ShowString(4,1, "Front");
+		makerobo_run(80,10);
+	}
+
+}
+
+
+// 超声波转头函数
+int front_detection(void)
+{
+	int distance;
+	Servo_SetAngle(90);
+	Delay_ms(100);
+	distance = UltrasonicWave_StartMeasure();
+	
+	OLED_ShowString(2,1, "F:");
+	OLED_ShowNum(2,3, distance, 4);
+	
+	return distance;
+}
+
+int left_detection(void)
+{
+	int distance;
+	Servo_SetAngle(175);
+	Delay_ms(300);
+	distance = UltrasonicWave_StartMeasure();
+	OLED_ShowString(3,1, "L:");
+	OLED_ShowNum(3,3, distance, 4);
+	return distance;
+}
+
+int right_detection(void)
+{
+	int distance;
+	Servo_SetAngle(5);
+	Delay_ms(300);
+	distance = UltrasonicWave_StartMeasure();
+	OLED_ShowString(3,8, "R:");
+	OLED_ShowNum(3,10, distance, 4);
+	return distance;
+}
+
+
+
 
 void basic_move(void)
 {
@@ -144,22 +270,22 @@ void move_by_ircontrol(uint8_t buf[2], uint8_t data_code)
 			
 			if(buf[0] == 1 && buf[1] == 8)
 			{
-				makerobo_run(70,1000);  // 前进2s
+				makerobo_run(70,0);  // 前进2s
 				Digital_Display(FRONT_DIGIT);
 			}
 			else if(buf[0] == 4 && buf[1] == 10)
 			{
-				makerobo_back(70,1000); // 后退2s
+				makerobo_back(70,0); // 后退2s
 				Digital_Display(BACK_DIGIT);
 			}
 			else if(buf[0] == 1 && buf[1] == 0)
 			{
-				makerobo_Spin_Left(70,1000); //左转
+				makerobo_Spin_Left(70,0); //左转
 				Digital_Display(LEFT_DIGIT);
 			}
 			else if(buf[0] == 5 && buf[1] == 10)
 			{
-				makerobo_Spin_Right(70,1000); // 右转
+				makerobo_Spin_Right(70,0); // 右转
 				Digital_Display(RIGHT_DIGIT);
 			}
 			else if(buf[0] == 3 && buf[1] == 8)
@@ -167,10 +293,11 @@ void move_by_ircontrol(uint8_t buf[2], uint8_t data_code)
 				makerobo_brake(0); // 停止
 				Digital_Display(STOP_DIGIT);
 			}
-			else if(buf[0] == 3 && buf[1] == 0)
-			{	
-				 basic_move(); 
-			}
+			// the delay func has bugs
+//			else if(buf[0] == 3 && buf[1] == 0)
+//			{	
+//				 basic_move(); 
+//			}
 			
 			else
 			{
@@ -180,8 +307,10 @@ void move_by_ircontrol(uint8_t buf[2], uint8_t data_code)
 		
 		}
 	
-	
 }
+
+
+
 
 void move_by_bluetooth(void)
 {
@@ -222,3 +351,5 @@ void move_by_bluetooth(void)
 			}
 
 }
+
+
