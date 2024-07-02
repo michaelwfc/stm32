@@ -3,7 +3,6 @@ Listings/
 DebugConfig/
 start/
 library/
-system/
 src/*/user/stm32f10x_conf.h
 src/*/user/stm32f10x_it.c
 src/*/user/stm32f10x_it.h

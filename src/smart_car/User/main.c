@@ -94,7 +94,7 @@ void move_by_ultrasonic(void)
 	if(Q_temp<60 && Q_temp>0) //测量距离值	
 	{
 		makerobo_brake(500);		
-		makerobo_back(80,1000);	
+		makerobo_back(70,1000);	
 		makerobo_brake(500);	
 		
 		L_temp=left_detection();//测量左边障碍物的距离值
@@ -110,7 +110,7 @@ void move_by_ultrasonic(void)
 			// makerobo_Spin_Left(60,500);
 			OLED_ShowString(4,1, "       ");
 			OLED_ShowString(4,1, "Back");
-			makerobo_back(80,1000);
+			makerobo_back(70,1000);
 			makerobo_brake(500);
 			
 		}				
@@ -118,14 +118,14 @@ void move_by_ultrasonic(void)
 		{	
 			OLED_ShowString(4,1, "       ");
 			OLED_ShowString(4,1, "Left");
-			makerobo_Left(80,1000);
+			makerobo_Left(70,1000);
 			makerobo_brake(500);
 		}	
 		else
 		{
 			OLED_ShowString(4,1, "       ");
 			OLED_ShowString(4,1, "Right");
-			makerobo_Right(80,1000);
+			makerobo_Right(70,1000);
 			makerobo_brake(500);					
 		}							
 	}	
@@ -133,7 +133,7 @@ void move_by_ultrasonic(void)
 	{
 		OLED_ShowString(4,1, "       ");
 		OLED_ShowString(4,1, "Front");
-		makerobo_run(80,10);
+		makerobo_run(70,500);
 	}
 
 }
