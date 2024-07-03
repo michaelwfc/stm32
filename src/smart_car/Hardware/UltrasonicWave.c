@@ -18,7 +18,7 @@ float UltrasonicWave_Distance;      //计算出的距离  mm
  */
 void UltrasonicWave_Init(void)
 {
-	Timerx_Init(5000,7199);  //10Khz的计数频率，计数到5000为500ms 
+	
 	
 	// 开启 RCC_APB2Periph_GPIOB|RCC_APB2Periph_AFIO 时钟
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB|RCC_APB2Periph_AFIO, ENABLE);
