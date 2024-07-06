@@ -7,9 +7,9 @@ L298N DC Motor Driver 直流电机芯片
 
 ## Power
 
-- 12V:  input
-- GND: 
-- 5V:  output to STM32 chip
+- 12V:  MotorVCC input 5v-35V 
+- GND:  
+- 5V:  output/input to STM32 chip
   
 ## PWM
 

@@ -123,3 +123,18 @@ GPICO -> AFIO 中断引脚选择 ->EXTI 边沿检测及控制 > NVIC
 
 ## Timer Interrupt 定时中断
 
+
+
+# FlyMcu程序烧录软件
+## 原理
+-  Bootloader: 串口USRAT1 下载程序进行更新
+-  Boot0=0 时 启动模式为 主闪存存储器， Boot0=1，Boot1=0时 为系统存储器 
+
+## Steps
+- 串口下载程序： objects/*.hex
+- boot0 跳线设置为1
+- USART1不断接收数据，刷新到主闪存 
+
+
+# STLINK Utility
+
