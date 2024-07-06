@@ -21,7 +21,7 @@ void move_by_ircontrol(uint8_t buf[2], uint8_t data_code);
 int front_detection(void);
 int left_detection(void);
 int right_detection(void);
-void move_by_ultrasonic(uint8_t car_speed);
+void move_by_ultrasonic(uint8_t dangance_distantance, uint8_t car_speed,uint16_t back_time,uint16_t turn_time);
 void move_by_bluetooth(void);
 
 uint8_t FRONT_DIGIT=2;
@@ -31,24 +31,40 @@ uint8_t RIGHT_DIGIT=6;
 uint8_t STOP_DIGIT=0;
 uint8_t DANCE_DIGIT=1;
 
+
+
+
 int main(void)
 {	
 	Key_Init();
 	LEDSEG_Init();
 	Serial_Init();             // 串口初始化
-	robot_Init();              // 机器人初始化
+	
 	LEDSEG_Init();
 	OLED_Init();
 	//USART3_init(9600);
 	//IRremote_Init();     // 红外遥控器初始化
-	// timer3 for pwm
-	Servo_Init();        // 舵机初始化 
+	
+	// timer1 for deley function
+	timer1_init();
+	
 	// timer2 for  UltrasonicWave
 	Timerx_Init(5000,7199);  //10Khz的计数频率，计数到5000为500ms 
+	// timer4 for pwm of car
+	robot_Init();              // 机器人初始化
+	// timer3 for pwm
+	Servo_Init();        // 舵机初始化 
+	
+
+	
 	// NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);  //中断优先级分组分2组
 	UltrasonicWave_Init();  //对超声波模块初始化
 	
-	uint8_t car_speed= 75;
+	uint8_t dangance_distantance=100;
+	
+	uint8_t car_speed = 70;
+	uint16_t back_time = 1000;
+	uint16_t turn_time = 1000;
 	
 
 //	OLED_ShowString(2,1,"Address:");
@@ -77,45 +93,49 @@ int main(void)
 		// move_by_ircontrol(buf, data_code);
 		
 //		Servo_SetAngle(90);
-//		Delay_ms(100);
+//		timer1_delay_ms(100);
 //		
 //		Servo_SetAngle(175);
-//		Delay_ms(100);
+//		timer1_delay_ms(100);
 //		
 //		Servo_SetAngle(5);
-//		Delay_ms(100);
+//		timer1_delay_ms(100);
 		
-		move_by_ultrasonic(car_speed);
+		move_by_ultrasonic(dangance_distantance, car_speed,back_time,turn_time);
 		}
 }
 
 
-void move_by_ultrasonic(uint8_t car_speed)
+void move_by_ultrasonic(uint8_t dangance_distantance, uint8_t car_speed,uint16_t back_time,uint16_t turn_time)
 {
 	int Q_temp,L_temp,R_temp; 
 	Q_temp = front_detection();
 	printf("测到的距离值为：%d\r\n",Q_temp);
 	
-	if(Q_temp<60 && Q_temp>0) //测量距离值	
+	if(Q_temp<dangance_distantance && Q_temp>0) //测量距离值	
 	{
 		makerobo_brake(500);		
-		makerobo_back(car_speed,1000);	
+		makerobo_back(car_speed,back_time);	
 		makerobo_brake(500);	
 		
 		L_temp=left_detection();//测量左边障碍物的距离值
 		printf("测到的距离值为：%d\r\n",L_temp);
-		Delay_ms(500);
+		timer1_delay_ms(500);
 		
 		R_temp=right_detection();//测量右边障碍物的距离值
 		printf("测到的距离值为：%d\r\n",R_temp);
-		Delay_ms(500);
+		timer1_delay_ms(500);
 		
-		if((L_temp < 60 ) &&( R_temp < 60 ))//当左右两侧均有障碍物靠的比较近
+		// Turn back to front
+		Servo_SetAngle(90);
+		timer1_delay_ms(500);
+		
+		if((L_temp < 60) &&( R_temp < 60 ))//当左右两侧均有障碍物靠的比较近
 		{
 			// makerobo_Spin_Left(60,500);
 			OLED_ShowString(4,1, "       ");
 			OLED_ShowString(4,1, "Back");
-			makerobo_back(car_speed,1000);
+			makerobo_back(car_speed,back_time);
 			makerobo_brake(500);
 			
 		}				
@@ -123,14 +143,14 @@ void move_by_ultrasonic(uint8_t car_speed)
 		{	
 			OLED_ShowString(4,1, "       ");
 			OLED_ShowString(4,1, "Left");
-			makerobo_Left(car_speed,1000);
+			makerobo_Left(car_speed,turn_time);
 			makerobo_brake(500);
 		}	
 		else
 		{
 			OLED_ShowString(4,1, "       ");
 			OLED_ShowString(4,1, "Right");
-			makerobo_Right(car_speed,1000);
+			makerobo_Right(car_speed,turn_time);
 			makerobo_brake(500);					
 		}							
 	}	
@@ -138,7 +158,7 @@ void move_by_ultrasonic(uint8_t car_speed)
 	{
 		OLED_ShowString(4,1, "       ");
 		OLED_ShowString(4,1, "Front");
-		makerobo_run(car_speed,100);
+		makerobo_run(car_speed,10);
 	}
 
 }
@@ -149,7 +169,8 @@ int front_detection(void)
 {
 	int distance;
 	Servo_SetAngle(90);
-	Delay_ms(100);
+	// deley time wating for the servo to the correct direction
+	timer1_delay_ms(100);
 	distance = UltrasonicWave_StartMeasure();
 	
 	OLED_ShowString(2,1, "F:");
@@ -162,7 +183,7 @@ int left_detection(void)
 {
 	int distance;
 	Servo_SetAngle(175);
-	Delay_ms(500);
+	timer1_delay_ms(500);
 	distance = UltrasonicWave_StartMeasure();
 	OLED_ShowString(3,1, "L:");
 	OLED_ShowNum(3,3, distance, 4);
@@ -173,7 +194,8 @@ int right_detection(void)
 {
 	int distance;
 	Servo_SetAngle(5);
-	Delay_ms(500);
+	// deley more time wating for the servo turn from left to right
+	timer1_delay_ms(500);
 	distance = UltrasonicWave_StartMeasure();
 	OLED_ShowString(3,8, "R:");
 	OLED_ShowNum(3,10, distance, 4);
