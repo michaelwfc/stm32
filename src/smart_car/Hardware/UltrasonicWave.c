@@ -18,8 +18,6 @@ float UltrasonicWave_Distance;      //计算出的距离  mm
  */
 void UltrasonicWave_Init(void)
 {
-	
-	
 	// 开启 RCC_APB2Periph_GPIOB|RCC_APB2Periph_AFIO 时钟
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB|RCC_APB2Periph_AFIO, ENABLE);
 	
@@ -90,18 +88,22 @@ d = time(us)* speed/2 = time *10^-6 * 34 *10^3
 */
 void EXTI15_10_IRQHandler(void)
 {
-	Delay_us(40);		                      //延时10us
+	// 2. The Module automatically sends eight 40 kHz and detect whether there is a pulse signal back.
+	timer1_delay_us(50); 	                      //延时10us
+	uint16_t timer_count;
 	if(EXTI_GetITStatus(EXTI_Line14) != RESET)
 	{
 		TIM_SetCounter(TIM2,0);
 		TIM_Cmd(TIM2, ENABLE);                                       //开启时钟
-	
+		/* distant = time*340m/s /2
+		time = distant*2/340m/s = 1m *2/340 s = 2/340 *1000 ms= 5.882 ms
+		*/
 		while(GPIO_ReadInputDataBit(ECHO_PORT,ECHO_PIN));          //等待低电平
 
 		TIM_Cmd(TIM2, DISABLE);			                                 //定时器2失能
-		// ARR+1= 5000, COUNT/5000*0.5s/2 * 340m/s = COUNT*5/10000*340000 mm/s= count*5*34/2 mm
-		// 
-		UltrasonicWave_Distance=TIM_GetCounter(TIM2)*5*34/20;			//计算距离&&UltrasonicWave_Distance<150
+
+		timer_count = TIM_GetCounter(TIM2);
+		UltrasonicWave_Distance=timer_count*5*34/1000;			//计算距离&&UltrasonicWave_Distance<150
 		EXTI_ClearITPendingBit(EXTI_Line14);  //清除EXTI1线路挂起位
 	}
 }
@@ -115,9 +117,14 @@ void EXTI15_10_IRQHandler(void)
 int UltrasonicWave_StartMeasure(void)
 {
 	int u_temp;
+	//1. Using IO trigger for at least 10us high level signal
 	GPIO_SetBits(TRIG_PORT,TRIG_PIN); 		  //送>10US的高电平RIG_PORT,TRIG_PIN这两个在define中有?
-	Delay_us(20);		                      //延时20US
+	// replace the delay func by systemtick
+	timer1_delay_us(20);		                      //延时20US
 	GPIO_ResetBits(TRIG_PORT,TRIG_PIN);
+	// the delay time should longer engough after recieved the echo
+	timer1_delay_ms(200);
+	
 	u_temp = UltrasonicWave_Distance;
 	
 
