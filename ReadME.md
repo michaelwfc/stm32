@@ -1,8 +1,9 @@
+# Smart Car
 
-Smart Car
+![image](./images/smart_car.jpg)
 
 
-# hardware
+## Hardware
 
 - 循迹/避障/遥控小车底盘 + 车轮 + 万向轮 
 - 主控： STM32F103C8T6 芯片 和 STM32 扩展板
@@ -17,5 +18,5 @@ Smart Car
 - SBUS 航模遥控器
 
 
-# driver
+## driver
 
