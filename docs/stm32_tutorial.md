@@ -28,9 +28,10 @@ STM32是ST公司基于ARM Cortex-M内核开发的32位微控制器
 - STM32F10x_StdPeriph_Lib_V3.5.0 标准库/固件库
 
 ## Debug method
- - 串口调试： 通过串口通信，将调试信息发送到电脑端，电脑使用串口助手显示调试信息
- - 显示屏调试
- - Keil调试模式
+
+- 串口调试： 通过串口通信，将调试信息发送到电脑端，电脑使用串口助手显示调试信息
+- 显示屏调试
+- Keil调试模式
 
 ## Keil Debug
 
@@ -44,15 +45,15 @@ STM32是ST公司基于ARM Cortex-M内核开发的32位微控制器
 
 - 建立工程文件夹，Keil中新建工程，选择型号 STM32F103C8
 - 工程文件夹里建立Start、Library、User等文件夹，复制固件库里面的文件到工程文件夹
-  - start: STM32F10x 启动文件： STM32F10x_StdPeriph_Lib_V3.5.0\Libraries\CMSIS\CM3\DeviceSupport\ST\STM32F10x\startup\arm + Libraries\CMSIS\CM3\DeviceSupport\ST\STM32F10x + Libraries\CMSIS\CM3\CoreSupport
-  - libraty: STM32F10x_StdPeriph_Lib_V3.5.0\Libraries\STM32F10x_StdPeriph_Driver\src + Libraries\STM32F10x_StdPeriph_Driver\inc
-  - user:  STM32F10x_StdPeriph_Lib_V3.5.0\Project\STM32F10x_StdPeriph_Template
+  - Start: STM32F10x 启动文件： STM32F10x_StdPeriph_Lib_V3.5.0\Libraries\CMSIS\CM3\DeviceSupport\ST\STM32F10x\startup\arm + Libraries\CMSIS\CM3\DeviceSupport\ST\STM32F10x + Libraries\CMSIS\CM3\CoreSupport
+  - Libraty: STM32F10x_StdPeriph_Lib_V3.5.0\Libraries\STM32F10x_StdPeriph_Driver\src + Libraries\STM32F10x_StdPeriph_Driver\inc
+  - User:  STM32F10x_StdPeriph_Lib_V3.5.0\Project\STM32F10x_StdPeriph_Template
 
 - 工程里对应建立Start、Library、User等同名称的分组 group，然后将文件夹内的文件添加到工程分组里
-  - start: startup_stm32f10x_md.s (MD表示: STM32F101/102/103 中容量产品 ),  *.c , *.h
+  - Start: startup_stm32f10x_md.s (MD表示: STM32F101/102/103 中容量产品 ),  *.c , *.h
 - 工程选项，C/C++，Include Paths内声明所有包含头文件的文件夹
 - 工程选项，C/C++，Define内定义 USE_STDPERIPH_DRIVER
-- 工程选项，Debug，下拉列表选择对应调试器 ST-Lin/CMISS-DAP debugger，Settings，Flash Download里勾选Reset and Run
+- 工程选项，Debug，下拉列表选择对应调试器 ST-Lin/CMISS-DAP debugger，Settings，Debug: Max clock选择 50kHZ(频率过大可能导致调试连接频繁错误), Flash Download里勾选Reset and Run
 
 [Note: ARM compiler v5.0](https://blog.csdn.net/weixin_44807874/article/details/128627528)
 the new Keil MDK-ARM 5.37+ default use ARM compiler v6.0+, not support ARM compiler v5.0, we need install ARM compiler v5.06: ARMCompiler_506_Windows_x86_b960.rar 
@@ -62,8 +63,21 @@ choose ARM compiler v5
 - 工程选项，Target->  ARM compiler -> use defalut compiler version v5
 
 
-# Teams
+# FlyMcu程序烧录软件
 
+## 原理
+
+-  Bootloader: 串口USRAT1 下载程序进行更新
+-  Boot0=0 时 启动模式为 主闪存存储器， Boot0=1，Boot1=0时 为系统存储器 
+
+## Steps
+
+- 串口下载程序： objects/*.hex
+- boot0 跳线设置为1
+- USART1不断接收数据，刷新到主闪存 
+
+
+# STLINK Utility
 
 # GPIO（General Purpose Input Output/IO）
 
@@ -101,8 +115,12 @@ choose ARM compiler v5
 
 中断嵌套：当一个中断程序正在运行时，又有新的更高优先级的中断源申请中断，CPU再次暂停当前中断程序，转而去处理新的中断程序，处理完成后依次进行返回
 
+## 中断类型
 
-
+- EXTI (Extern Interrupt)外部中断
+- TIM  定时中断
+- ADC
+- USART
 
 ## EXTI ： （Extern Interrupt）外部中断
 
@@ -123,18 +141,34 @@ GPICO -> AFIO 中断引脚选择 ->EXTI 边沿检测及控制 > NVIC
 
 ## Timer Interrupt 定时中断
 
+定时器可以对输入的时钟进行计数，并在计数值达到设定值时触发中断
+
+### Functions
+
+- 基本定时功能： 时钟/秒表
+- 定时中断功能： 计数，执行中断任务
+- 输出比较功能： PWN 信号
+- 输入比较功能： 测量方波频率
+- 编码器接口：  编码器测速
+- 主从触发模式
 
 
-# FlyMcu程序烧录软件
-## 原理
--  Bootloader: 串口USRAT1 下载程序进行更新
--  Boot0=0 时 启动模式为 主闪存存储器， Boot0=1，Boot1=0时 为系统存储器 
+### 时基单元
 
-## Steps
-- 串口下载程序： objects/*.hex
-- boot0 跳线设置为1
-- USART1不断接收数据，刷新到主闪存 
+- 计数器(16位)： 0-0xFFFF=65536
+- PSC 预分频器(16位)
+- ARR 自动重装寄存器(16位)
+- CN_INT 内部时钟: 在72MHz计数时钟下可以实现最大59.65s的定时
+
+ ### 计数器溢出频率：
+
+ CK_CNT_OV =  CN_CNT/(ARR+1) = CN_CNT/(PSC+1)/(ARR+1)
+           =  72M/7200/10000   //  1Hz -> 1s 溢出
 
 
-# STLINK Utility
+### 定时器类型
+
+STM32F103C8T6定时器资源：TIM1、TIM2、TIM3、TIM4
+
+
 
